@@ -62,11 +62,12 @@ public class TablePane extends StackPane {
         return ol.remove(index) != null;
     }
 
-    public boolean getParticipantsFromFile() {
+    public boolean loadParticipantsFromFile() {
         return true;
     }
 
-    public boolean addParticipantToFile() {
+    public boolean addParticipantToFile(Participant p) {
+
         return true;
     }
 }
