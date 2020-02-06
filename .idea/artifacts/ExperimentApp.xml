@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="javafx" name="ExperimentApp">
+    <output-path>$PROJECT_DIR$/out/artifacts/ExperimentApp</output-path>
+    <root id="root">
+      <element id="artifact" artifact-name="ExperimentApp_jar" />
+    </root>
+  </artifact>
+</component>
