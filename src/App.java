@@ -5,6 +5,13 @@ import javafx.stage.Stage;
 
 public class App extends Application {
 
+    // TODO:
+    //  Add a status label for:
+    //  1. added participant
+    //  2. removed participant
+    //  3. participant that was not added (Already exists).
+
+
     public static void main(String[] args) {
         launch(args);
     }
@@ -14,18 +21,22 @@ public class App extends Application {
         primaryStage.setTitle("Data Tracking");
         FormPane formPane = new FormPane();
         TablePane tablePane = new TablePane();
+        tablePane.loadAllParticipantsFromFile();
         HBox hBox = new HBox(formPane, tablePane);
         Scene scene = new Scene(hBox, 1000, 500);
         primaryStage.setScene(scene);
         primaryStage.setMinHeight(350);
         primaryStage.setMinWidth(400);
         primaryStage.setAlwaysOnTop(true);
-        //primaryStage.setResizable(false);
         primaryStage.show();
 
         clickAddBtn(formPane, tablePane);
         clickClearBtn(formPane);
         clickRemoveBtn(formPane, tablePane);
+
+        primaryStage.setOnCloseRequest(e -> {
+            tablePane.terminate();
+        });
     }
 
     public void clickAddBtn(FormPane formPane, TablePane tablePane) {
@@ -37,8 +48,9 @@ public class App extends Application {
             Participant p = new Participant(fName,lName, id, date);
             if (!fName.isEmpty() && !lName.isEmpty() && !id.isEmpty() && !date.isEmpty()) {
                 // Will add a participant only if the fields are not empty.
-                tablePane.getOl().add(p);
-                clearTextFields(formPane);
+                if (tablePane.addParticipant(p)) {
+                    clearTextFields(formPane);
+                }
             }
         });
     }

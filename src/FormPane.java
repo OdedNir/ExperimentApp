@@ -11,7 +11,6 @@ import javafx.scene.text.Text;
 
 public class FormPane extends GridPane {
 
-    private int paddingVal = 25;
     private Button addBut;
     private Button removeBut;
     private Button clearBut;
@@ -30,6 +29,7 @@ public class FormPane extends GridPane {
         this.setAlignment(Pos.CENTER_LEFT);
         this.setHgap(10);
         this.setVgap(10);
+        int paddingVal = 25;
         this.setPadding(new Insets(paddingVal, paddingVal, paddingVal, paddingVal));
         // Info pane:
         Text title = new Text("Add Participant:");

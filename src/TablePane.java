@@ -5,8 +5,9 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.StackPane;
 
-import java.io.File;
+import java.io.*;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 
 public class TablePane extends StackPane {
@@ -14,9 +15,7 @@ public class TablePane extends StackPane {
     private static final int COLUMN_WIDTH = 150;
     private static final String FILE_NAME = "Participants.txt";
 
-    private static ObservableList<Participant> ol = FXCollections.observableArrayList(
-//            new Participant("oded", "nir", "205985948", "18/09/1994")
-    );
+    private static ObservableList<Participant> ol = FXCollections.observableArrayList();
     private TableView<Participant> tableView;
 
     public TablePane() {
@@ -53,21 +52,85 @@ public class TablePane extends StackPane {
     public boolean removeById(String id) {
         Participant temp = new Participant("", "", id, "");
         int index = Collections.binarySearch(ol, temp, new idComparator());
-        return ol.remove(index) != null;
+        if (ol.remove(index) != null) {
+            clearFile();
+            saveAllParticipantsToFile();
+            return true;
+        }
+        return false;
     }
 
     public boolean removeByName(String fName, String lName) {
         Participant temp = new Participant(fName, lName, "", "");
         int index = Collections.binarySearch(ol, temp, new fNameLNameComparator());
-        return ol.remove(index) != null;
+        if (ol.remove(index) != null) {
+            clearFile();
+            saveAllParticipantsToFile();
+        }
+        return false;
     }
 
-    public boolean loadParticipantsFromFile() {
-        return true;
+    public void loadAllParticipantsFromFile() {
+        try (RandomAccessFile file = new RandomAccessFile(FILE_NAME, "r")) {
+            while (file.getFilePointer() < file.length()) {
+                ol.add(readParticipant(file));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public boolean addParticipantToFile(Participant p) {
+    public void clearFile() {
+        try (RandomAccessFile file = new RandomAccessFile(FILE_NAME, "rw")) {
+            file.setLength(0);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-        return true;
+    public void saveAllParticipantsToFile() {
+        try (RandomAccessFile file = new RandomAccessFile(FILE_NAME, "rw")) {
+            for (Participant participant : ol) {
+                writeParticipant(participant, file);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private Participant readParticipant(RandomAccessFile file) throws IOException{
+        String fName = file.readUTF();
+        String lName = file.readUTF();
+        String id = file.readUTF();
+        String date = file.readUTF();
+        return new Participant(fName, lName, id, date);
+    }
+
+    public boolean addParticipant(Participant p) {
+        try (RandomAccessFile file = new RandomAccessFile(FILE_NAME, "rw")) {
+            file.seek(file.length());
+            if (Collections.binarySearch(ol, p, new fNameLNameComparator()) < 0) { // Will not add if already exists
+                writeParticipant(p, file);
+                ol.add(p);
+                return true;
+            }
+            return false;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    public void writeParticipant(Participant p, RandomAccessFile file) throws IOException {
+        file.writeUTF(p.getFirstName());
+        file.writeUTF(p.getLastName());
+        file.writeUTF(p.getId());
+        String date = p.getBirthDate().format(DateTimeFormatter.ofPattern("dd/MM/YYYY"));
+        file.writeUTF(date);
+    }
+
+    public void terminate() {
+        clearFile();
+        saveAllParticipantsToFile();
     }
 }
