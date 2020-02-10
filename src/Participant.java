@@ -1,21 +1,29 @@
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Objects;
+import java.util.TreeMap;
 
 public class Participant implements Serializable {
 
     private String firstName;
     private String lastName;
     private String id;
-    private LocalDate birthDate;
+    private LocalDate dateOfBirth;
+    // TODO: Add these to the TableView:
+    private String gender;
+
+
+    private TreeMap<String, String> researches;
 
     private static final int ID_LENGTH = 9;
 
-    public Participant(String firstName, String lastName, String id, String birthDate) {
+    public Participant(String firstName, String lastName, String id, String birthDate, String gender) {
         setFirstName(firstName);
         setLastName(lastName);
         setID(id);
-        setBirthDate(birthDate);
+        setDateOfBirth(birthDate);
+        this.gender = gender;
+        researches = new TreeMap<>();
     }
 
     public String getFirstName() {
@@ -30,8 +38,12 @@ public class Participant implements Serializable {
         return id;
     }
 
-    public LocalDate getBirthDate() {
-        return birthDate;
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public String getGender() {
+        return gender;
     }
 
     private void setFirstName(String firstName) {
@@ -56,25 +68,33 @@ public class Participant implements Serializable {
         this.id = id;
     }
 
-    private void setBirthDate(String birthDate) {
-        if (birthDate == null){
-            this.birthDate = null;
+    private void setDateOfBirth(String dateOfBirth) {
+        if (dateOfBirth == null){
+            this.dateOfBirth = null;
         } else {
-            if (birthDate.length() != 10) {
-                this.birthDate = null;
+            if (dateOfBirth.length() != 10) {
+                this.dateOfBirth = null;
                 return;
             }
-            for (int i = 0; i < birthDate.length(); i++) {
-                if ((i != 2 && i != 5) && (birthDate.charAt(i) < '0' || birthDate.charAt(i) > '9')) {
-                    this.birthDate = null;
+            for (int i = 0; i < dateOfBirth.length(); i++) {
+                if ((i != 2 && i != 5) && (dateOfBirth.charAt(i) < '0' || dateOfBirth.charAt(i) > '9')) {
+                    this.dateOfBirth = null;
                     return;
                 }
             }
-            int day = Integer.parseInt(birthDate.substring(0, 2));
-            int month = Integer.parseInt(birthDate.substring(3, 5));
-            int year = Integer.parseInt(birthDate.substring(6, 10));
-            this.birthDate = LocalDate.of(year, month, day);
+            int day = Integer.parseInt(dateOfBirth.substring(0, 2));
+            int month = Integer.parseInt(dateOfBirth.substring(3, 5));
+            int year = Integer.parseInt(dateOfBirth.substring(6, 10));
+            this.dateOfBirth = LocalDate.of(year, month, day);
         }
+    }
+
+    public TreeMap<String, String> getResearches() {
+        return researches;
+    }
+
+    public void addResearch(String research, String info) {
+        researches.put(research, info);
     }
 
     @Override
@@ -85,11 +105,11 @@ public class Participant implements Serializable {
         return getFirstName().equals(that.getFirstName()) &&
                 getLastName().equals(that.getLastName()) &&
                 getId().equals(that.getId()) &&
-                getBirthDate().equals(that.getBirthDate());
+                getDateOfBirth().equals(that.getDateOfBirth());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getFirstName(), getLastName(), getId(), getBirthDate());
+        return Objects.hash(getFirstName(), getLastName(), getId(), getDateOfBirth());
     }
 }

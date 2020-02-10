@@ -5,8 +5,8 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.StackPane;
 
-import java.io.*;
-import java.time.LocalDate;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 
@@ -15,43 +15,30 @@ public class TablePane extends StackPane {
     private static final int COLUMN_WIDTH = 150;
     private static final String FILE_NAME = "Participants.txt";
 
-    private static ObservableList<Participant> ol = FXCollections.observableArrayList();
-    private TableView<Participant> tableView;
+    private ObservableList<Participant> ol = FXCollections.observableArrayList();
 
     public TablePane() {
-        tableView = new TableView<>();
-        TableColumn<Participant, String> column1 = new TableColumn<>("First Name");
-        column1.setMinWidth(COLUMN_WIDTH);
-        column1.setCellValueFactory(new PropertyValueFactory<>("firstName"));
-        TableColumn<Participant, String> column2 = new TableColumn<>("Last Name");
-        column2.setCellValueFactory(new PropertyValueFactory<>("lastName"));
-        column2.setMinWidth(COLUMN_WIDTH);
-        TableColumn<Participant, String> column3 = new TableColumn<>("ID");
-        column3.setCellValueFactory(new PropertyValueFactory<>("id"));
-        column3.setMinWidth(COLUMN_WIDTH);
-        TableColumn<Participant, LocalDate> column4 = new TableColumn<>("Birth Date");
-        column4.setMinWidth(COLUMN_WIDTH);
-        column4.setCellValueFactory(new PropertyValueFactory<>("birthDate"));
-        tableView.getColumns().add(column1);
-        tableView.getColumns().add(column2);
-        tableView.getColumns().add(column3);
-        tableView.getColumns().add(column4);
+        TableView<Participant> tableView = new TableView<>();
+        createColumn(tableView,"First Name", "firstName");
+        createColumn(tableView, "Last Name", "lastName");
+        createColumn(tableView, "ID", "id");
+        createColumn(tableView, "Date Of Birth", "dateOfBirth");
+        createColumn(tableView, "Gender", "gender");
         tableView.setMinWidth(600);
-        this.getChildren().add(tableView);
         tableView.setItems(ol);
+        this.getChildren().add(tableView);
     }
 
-    public TableView<Participant> getTableView() {
-        return tableView;
-    }
-
-    public ObservableList<Participant> getOl() {
-        return ol;
+    public <T,K> void createColumn(TableView<T> tableView, String text, String attributeName) {
+        TableColumn<T,K> column = new TableColumn<>(text);
+        column.setMinWidth(COLUMN_WIDTH);
+        column.setCellValueFactory(new PropertyValueFactory<>(attributeName));
+        tableView.getColumns().add(column);
     }
 
     public boolean removeById(String id) {
-        Participant temp = new Participant("", "", id, "");
-        int index = Collections.binarySearch(ol, temp, new idComparator());
+        int index = binarySearchById(id);
+        if (index < 0) return false;
         if (ol.remove(index) != null) {
             clearFile();
             saveAllParticipantsToFile();
@@ -60,14 +47,36 @@ public class TablePane extends StackPane {
         return false;
     }
 
+    public int binarySearchById(String id) {
+        return Collections.binarySearch(ol, new Participant("", "", id, "", ""), new idComparator());
+    }
+
     public boolean removeByName(String fName, String lName) {
-        Participant temp = new Participant(fName, lName, "", "");
-        int index = Collections.binarySearch(ol, temp, new fNameLNameComparator());
+        int index = binarySearchByName(fName, lName);
+        if (index < 0) return false;
         if (ol.remove(index) != null) {
             clearFile();
             saveAllParticipantsToFile();
         }
         return false;
+    }
+
+    public int binarySearchByName(String fName, String lName) {
+        ol.sort(new fNameLNameComparator());
+        int left = 0, right = ol.size() - 1, mid = 0;
+        while (left <= right) {
+            mid = (left + right) / 2;
+            int fNameValue = fName.compareTo(ol.get(mid).getFirstName());
+            int lastNameValue = lName.compareTo(ol.get(mid).getLastName());
+            if (fNameValue == 0 && lastNameValue == 0) {
+                return mid;
+            } else if (fNameValue < 0 || (fNameValue == 0 && lastNameValue < 0)) {
+                right = mid - 1;
+            } else {
+                left = mid + 1;
+            }
+        }
+        return -mid - 1;
     }
 
     public void loadAllParticipantsFromFile() {
@@ -104,13 +113,14 @@ public class TablePane extends StackPane {
         String lName = file.readUTF();
         String id = file.readUTF();
         String date = file.readUTF();
-        return new Participant(fName, lName, id, date);
+        String gender = file.readUTF();
+        return new Participant(fName, lName, id, date, gender);
     }
 
     public boolean addParticipant(Participant p) {
         try (RandomAccessFile file = new RandomAccessFile(FILE_NAME, "rw")) {
             file.seek(file.length());
-            if (Collections.binarySearch(ol, p, new fNameLNameComparator()) < 0) { // Will not add if already exists
+            if (binarySearchByName(p.getFirstName(), p.getLastName()) < 0 && binarySearchById(p.getId()) < 0) { // Will not add if already exists
                 writeParticipant(p, file);
                 ol.add(p);
                 return true;
@@ -125,8 +135,8 @@ public class TablePane extends StackPane {
         file.writeUTF(p.getFirstName());
         file.writeUTF(p.getLastName());
         file.writeUTF(p.getId());
-        String date = p.getBirthDate().format(DateTimeFormatter.ofPattern("dd/MM/YYYY"));
-        file.writeUTF(date);
+        file.writeUTF(p.getDateOfBirth().format(DateTimeFormatter.ofPattern("dd/MM/YYYY")));
+        file.writeUTF(p.getGender());
     }
 
     public void terminate() {

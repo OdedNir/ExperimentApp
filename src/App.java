@@ -1,5 +1,6 @@
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
@@ -11,6 +12,8 @@ public class App extends Application {
     //  2. removed participant
     //  3. participant that was not added (Already exists).
 
+    // TODO: Change the panes to be a Singleton design pattern. Only one instance of those.
+
 
     public static void main(String[] args) {
         launch(args);
@@ -18,16 +21,17 @@ public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("Data Tracking");
+        primaryStage.setTitle("Research Data");
+        primaryStage.setMinHeight(625);
+        primaryStage.setMinWidth(1150);
         FormPane formPane = new FormPane();
+        ResearchPane researchPane = new ResearchPane();
+        FlowPane flowPane = new FlowPane(formPane, researchPane);
         TablePane tablePane = new TablePane();
         tablePane.loadAllParticipantsFromFile();
-        HBox hBox = new HBox(formPane, tablePane);
-        Scene scene = new Scene(hBox, 1000, 500);
+        HBox hBox = new HBox(flowPane, tablePane);
+        Scene scene = new Scene(hBox);
         primaryStage.setScene(scene);
-        primaryStage.setMinHeight(350);
-        primaryStage.setMinWidth(400);
-        primaryStage.setAlwaysOnTop(true);
         primaryStage.show();
 
         clickAddBtn(formPane, tablePane);
@@ -45,11 +49,12 @@ public class App extends Application {
             String lName = formPane.getTfLastName().getText();
             String id = formPane.getTfID().getText();
             String date = formPane.getTfBirthDate().getText();
-            Participant p = new Participant(fName,lName, id, date);
+            String gender = formPane.getGenderComboBox().getValue();
+            Participant p = new Participant(fName,lName, id, date, gender);
             if (!fName.isEmpty() && !lName.isEmpty() && !id.isEmpty() && !date.isEmpty()) {
                 // Will add a participant only if the fields are not empty.
                 if (tablePane.addParticipant(p)) {
-                    clearTextFields(formPane);
+                    clearFields(formPane);
                 }
             }
         });
@@ -64,11 +69,11 @@ public class App extends Application {
             String date = formPane.getTfBirthDate().getText();
             if (!fName.isEmpty() && !lName.isEmpty()) {
                 if (tablePane.removeByName(fName, lName)) {
-                    clearTextFields(formPane);
+                    clearFields(formPane);
                 }
             } else if (!id.isEmpty()) {
                 if (tablePane.removeById(id)) {
-                    clearTextFields(formPane);
+                    clearFields(formPane);
                 }
             }
         });
@@ -77,15 +82,16 @@ public class App extends Application {
     public void clickClearBtn(FormPane formPane) {
         // Pressing the clear button will clear all text fields.
         formPane.getClearBut().setOnAction(e -> {
-            clearTextFields(formPane);
+            clearFields(formPane);
         });
 
     }
 
-    public void clearTextFields(FormPane formPane) {
+    public void clearFields(FormPane formPane) {
         formPane.getTfFirstName().clear();
         formPane.getTfLastName().clear();
         formPane.getTfID().clear();
         formPane.getTfBirthDate().clear();
+        formPane.getGenderComboBox().valueProperty().setValue(FormPane.DEFAULT);
     }
 }

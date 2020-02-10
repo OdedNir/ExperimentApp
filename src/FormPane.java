@@ -1,6 +1,9 @@
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
@@ -11,6 +14,10 @@ import javafx.scene.text.Text;
 
 public class FormPane extends GridPane {
 
+    private static final String MALE = "Male";
+    private static final String FEMALE = "Female";
+    public static final String DEFAULT = "Choose:";
+
     private Button addBut;
     private Button removeBut;
     private Button clearBut;
@@ -18,21 +25,22 @@ public class FormPane extends GridPane {
     private TextField tfLastName;
     private TextField tfID;
     private TextField tfBirthDate;
+    private ComboBox<String> genderComboBox;
 
 
     public FormPane() {
-        createGridPane();
+        createTextFields();
         createButtonPane();
     }
 
-    private void createGridPane() {
-        this.setAlignment(Pos.CENTER_LEFT);
+    private void createTextFields() {
+        this.setAlignment(Pos.TOP_CENTER);
         this.setHgap(10);
         this.setVgap(10);
         int paddingVal = 25;
         this.setPadding(new Insets(paddingVal, paddingVal, paddingVal, paddingVal));
         // Info pane:
-        Text title = new Text("Add Participant:");
+        Text title = new Text("Participant Form:");
         title.setFont(Font.font("Tahoma", FontWeight.NORMAL, 40));
         this.add(title, 0, 0, 2, 1);
         Label pFirstName = new Label("First name:");
@@ -51,6 +59,13 @@ public class FormPane extends GridPane {
         tfBirthDate = new TextField();
         this.add(pBirthDate, 0, 4);
         this.add(tfBirthDate, 1, 4);
+        genderComboBox = new ComboBox<>();
+        ObservableList<String> genderList = FXCollections.observableArrayList(MALE, FEMALE);
+        genderComboBox.setItems(genderList);
+        Label pGender = new Label("Gender:");
+        getGenderComboBox().valueProperty().setValue(DEFAULT);
+        this.add(pGender, 0, 5);
+        this.add(genderComboBox, 1, 5);
     }
 
     private void createButtonPane() {
@@ -65,7 +80,7 @@ public class FormPane extends GridPane {
         // Button pane:
         HBox hBox = new HBox(addBut, removeBut, clearBut);
         hBox.setSpacing(20);
-        this.add(hBox, 0, 5, 2,1);
+        this.add(hBox, 0, 6, 2,1);
         hBox.setAlignment(Pos.CENTER);
     }
 
@@ -95,5 +110,9 @@ public class FormPane extends GridPane {
 
     public TextField getTfBirthDate() {
         return tfBirthDate;
+    }
+
+    public ComboBox<String> getGenderComboBox() {
+        return this.genderComboBox;
     }
 }
