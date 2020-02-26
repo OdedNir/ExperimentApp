@@ -1,6 +1,7 @@
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.StackPane;
@@ -14,19 +15,24 @@ public class TablePane extends StackPane {
 
     private static final int COLUMN_WIDTH = 150;
     private static final String FILE_NAME = "Participants.txt";
+    TableView<Participant> tableView;
+    private static ObservableList<Participant> ol = FXCollections.observableArrayList();
 
-    private ObservableList<Participant> ol = FXCollections.observableArrayList();
+    public TablePane(ResearchViewPane researchViewPane) {
+        tableView = new TableView<>();
+        tableView.setMinWidth(600);
+        createAllColumns();
+        tableView.setItems(ol);
+        this.getChildren().add(tableView);
+        rowClick(researchViewPane);
+    }
 
-    public TablePane() {
-        TableView<Participant> tableView = new TableView<>();
+    public void createAllColumns() {
         createColumn(tableView,"First Name", "firstName");
         createColumn(tableView, "Last Name", "lastName");
         createColumn(tableView, "ID", "id");
         createColumn(tableView, "Date Of Birth", "dateOfBirth");
         createColumn(tableView, "Gender", "gender");
-        tableView.setMinWidth(600);
-        tableView.setItems(ol);
-        this.getChildren().add(tableView);
     }
 
     public <T,K> void createColumn(TableView<T> tableView, String text, String attributeName) {
@@ -48,7 +54,7 @@ public class TablePane extends StackPane {
     }
 
     public int binarySearchById(String id) {
-        return Collections.binarySearch(ol, new Participant("", "", id, "", ""), new idComparator());
+        return Collections.binarySearch(ol, new Participant("", "", id, "", "", "", ""), new idComparator());
     }
 
     public boolean removeByName(String fName, String lName) {
@@ -114,7 +120,9 @@ public class TablePane extends StackPane {
         String id = file.readUTF();
         String date = file.readUTF();
         String gender = file.readUTF();
-        return new Participant(fName, lName, id, date, gender);
+        String rName = file.readUTF();
+        String rInfo = file.readUTF();
+        return new Participant(fName, lName, id, date, gender, rName, rInfo);
     }
 
     public boolean addParticipant(Participant p) {
@@ -137,6 +145,24 @@ public class TablePane extends StackPane {
         file.writeUTF(p.getId());
         file.writeUTF(p.getDateOfBirth().format(DateTimeFormatter.ofPattern("dd/MM/YYYY")));
         file.writeUTF(p.getGender());
+        file.writeUTF(p.getResearchName());
+        file.writeUTF(p.getResearchInfo());
+    }
+
+    public void rowClick(ResearchViewPane researchViewPane) {
+        tableView.setRowFactory(tv -> {
+            TableRow<Participant> row = new TableRow<>();
+            row.setOnMouseClicked(e -> {
+                if (row.getItem() == null) {
+                    researchViewPane.getResearchNameField().clear();
+                    researchViewPane.getResearchInfo().clear();
+                } else {
+                    researchViewPane.getResearchNameField().setText(row.getItem().getResearchName());
+                    researchViewPane.getResearchInfo().setText(row.getItem().getResearchInfo());
+                }
+            });
+            return row;
+        });
     }
 
     public void terminate() {

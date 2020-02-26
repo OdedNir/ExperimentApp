@@ -1,7 +1,6 @@
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Objects;
-import java.util.TreeMap;
 
 public class Participant implements Serializable {
 
@@ -9,21 +8,20 @@ public class Participant implements Serializable {
     private String lastName;
     private String id;
     private LocalDate dateOfBirth;
-    // TODO: Add these to the TableView:
     private String gender;
-
-
-    private TreeMap<String, String> researches;
+    private String researchName;
+    private String researchInfo;
 
     private static final int ID_LENGTH = 9;
 
-    public Participant(String firstName, String lastName, String id, String birthDate, String gender) {
+    public Participant(String firstName, String lastName, String id, String birthDate, String gender, String researchName, String researchInfo) {
         setFirstName(firstName);
         setLastName(lastName);
         setID(id);
         setDateOfBirth(birthDate);
-        this.gender = gender;
-        researches = new TreeMap<>();
+        setGender(gender);
+        setResearchName(researchName);
+        setResearchInfo(researchInfo);
     }
 
     public String getFirstName() {
@@ -44,6 +42,14 @@ public class Participant implements Serializable {
 
     public String getGender() {
         return gender;
+    }
+
+    public String getResearchName() {
+        return researchName;
+    }
+
+    public String getResearchInfo() {
+        return researchInfo;
     }
 
     private void setFirstName(String firstName) {
@@ -89,12 +95,16 @@ public class Participant implements Serializable {
         }
     }
 
-    public TreeMap<String, String> getResearches() {
-        return researches;
+    public void setGender(String gender) {
+        this.gender = gender;
     }
 
-    public void addResearch(String research, String info) {
-        researches.put(research, info);
+    public void setResearchName(String researchName) {
+        this.researchName = researchName;
+    }
+
+    public void setResearchInfo(String researchInfo) {
+        this.researchInfo = researchInfo;
     }
 
     @Override
@@ -111,5 +121,18 @@ public class Participant implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(getFirstName(), getLastName(), getId(), getDateOfBirth());
+    }
+
+    @Override
+    public String toString() {
+        return "Participant{" +
+                "firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", id='" + id + '\'' +
+                ", dateOfBirth=" + dateOfBirth +
+                ", gender='" + gender + '\'' +
+                ", researchName='" + researchName + '\'' +
+                ", researchInfo='" + researchInfo + '\'' +
+                '}';
     }
 }

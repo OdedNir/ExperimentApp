@@ -1,19 +1,11 @@
 import javafx.application.Application;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
 public class App extends Application {
-
-    // TODO:
-    //  Add a status label for:
-    //  1. added participant
-    //  2. removed participant
-    //  3. participant that was not added (Already exists).
-
-    // TODO: Change the panes to be a Singleton design pattern. Only one instance of those.
-
 
     public static void main(String[] args) {
         launch(args);
@@ -22,76 +14,92 @@ public class App extends Application {
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Research Data");
+        // Pref size:
         primaryStage.setMinHeight(625);
         primaryStage.setMinWidth(1150);
+
+        // Left side of stage:
         FormPane formPane = new FormPane();
-        ResearchPane researchPane = new ResearchPane();
-        FlowPane flowPane = new FlowPane(formPane, researchPane);
-        TablePane tablePane = new TablePane();
+        ResearchPane editableResearchPane = new ResearchPane(200, 340);
+        ButtonPane buttonPane = new ButtonPane();
+        FlowPane flowPane = new FlowPane(formPane, editableResearchPane, buttonPane);
+
+        // right side of stage:
+        ResearchViewPane researchViewPane = new ResearchViewPane(400, 340);
+        researchViewPane.setAlignment(Pos.TOP_CENTER);
+        TablePane tablePane = new TablePane(researchViewPane);
         tablePane.loadAllParticipantsFromFile();
-        HBox hBox = new HBox(flowPane, tablePane);
+        editableResearchPane.loadResearchesFromFile();
+
+        // The main pane:
+        HBox hBox = new HBox(flowPane, tablePane, researchViewPane);
         Scene scene = new Scene(hBox);
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        clickAddBtn(formPane, tablePane);
-        clickClearBtn(formPane);
-        clickRemoveBtn(formPane, tablePane);
+        // Button events:
+        clickAddBtn(formPane, tablePane, buttonPane, editableResearchPane);
+        clickClearBtn(formPane, buttonPane, editableResearchPane);
+        clickRemoveBtn(formPane, tablePane, buttonPane, editableResearchPane);
 
+        // Closing the stage event:
         primaryStage.setOnCloseRequest(e -> {
             tablePane.terminate();
         });
     }
 
-    public void clickAddBtn(FormPane formPane, TablePane tablePane) {
-        formPane.getAddBut().setOnAction(e -> {
+    public void clickAddBtn(FormPane formPane, TablePane tablePane, ButtonPane buttonPane, ResearchPane researchPane) {
+        buttonPane.getAddBut().setOnAction(e -> {
             String fName = formPane.getTfFirstName().getText();
             String lName = formPane.getTfLastName().getText();
             String id = formPane.getTfID().getText();
             String date = formPane.getTfBirthDate().getText();
             String gender = formPane.getGenderComboBox().getValue();
-            Participant p = new Participant(fName,lName, id, date, gender);
+            String researchName = researchPane.getResearchesComboBox().getValue();
+            String researchInfo = researchPane.getTextArea().getText();
+            Participant p = new Participant(fName,lName, id, date, gender, researchName, researchInfo);
             if (!fName.isEmpty() && !lName.isEmpty() && !id.isEmpty() && !date.isEmpty()) {
                 // Will add a participant only if the fields are not empty.
                 if (tablePane.addParticipant(p)) {
-                    clearFields(formPane);
+                    clearFields(formPane, researchPane);
                 }
             }
         });
     }
 
-    public void clickRemoveBtn(FormPane formPane, TablePane tablePane) {
+    public void clickRemoveBtn(FormPane formPane, TablePane tablePane, ButtonPane buttonPane, ResearchPane researchPane) {
         // Pressing the remove button will remove a participant from the table pane and will clear all text fields.
-        formPane.getRemoveBut().setOnAction(e -> {
+        buttonPane.getRemoveBut().setOnAction(e -> {
             String fName = formPane.getTfFirstName().getText();
             String lName = formPane.getTfLastName().getText();
             String id = formPane.getTfID().getText();
-            String date = formPane.getTfBirthDate().getText();
             if (!fName.isEmpty() && !lName.isEmpty()) {
                 if (tablePane.removeByName(fName, lName)) {
-                    clearFields(formPane);
+                    clearFields(formPane, researchPane);
                 }
             } else if (!id.isEmpty()) {
                 if (tablePane.removeById(id)) {
-                    clearFields(formPane);
+                    clearFields(formPane, researchPane);
                 }
             }
         });
     }
 
-    public void clickClearBtn(FormPane formPane) {
+    public void clickClearBtn(FormPane formPane, ButtonPane buttonPane, ResearchPane researchPane) {
         // Pressing the clear button will clear all text fields.
-        formPane.getClearBut().setOnAction(e -> {
-            clearFields(formPane);
+        buttonPane.getClearBut().setOnAction(e -> {
+            clearFields(formPane, researchPane);
         });
 
     }
 
-    public void clearFields(FormPane formPane) {
+    public void clearFields(FormPane formPane, ResearchPane researchPane) {
         formPane.getTfFirstName().clear();
         formPane.getTfLastName().clear();
         formPane.getTfID().clear();
         formPane.getTfBirthDate().clear();
         formPane.getGenderComboBox().valueProperty().setValue(FormPane.DEFAULT);
+        researchPane.getResearchesComboBox().getEditor().clear();
+        researchPane.getTextArea().clear();
     }
 }
