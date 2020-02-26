@@ -1,5 +1,5 @@
 # ExperimentApp
-JavaFX Research Form
+JavaFX Research Form for keeping experiments data.
 
 Made with JavaFX to make an app for keeping records of participants in the researches.
 
